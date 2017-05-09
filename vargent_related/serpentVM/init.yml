@@ -1,0 +1,51 @@
+---
+- hosts: default
+  user: ubuntu
+  # gather_facts: false
+  vars:
+    mysql_root_password: "Blockchain!"
+
+  tasks:
+  - name: "FIX: Ubuntu 16.04 LTS doesn't come with certain modules, required by ansible"
+    raw: apt-get install aptitude -y
+    become: yes
+    become_user: root
+    become_method: sudo
+
+  - name: set timezone to Asia/Shanghai
+    become: yes
+    timezone:
+      name: Asia/Shanghai
+
+  - name: "Install program: dev packages”
+    become: yes
+    apt: name={{ item }} update_cache=yes state=present
+    with_items:
+    - python-setuptools
+    - python-dev
+    - build-essential 
+    - python-pip
+    - libxml2-dev
+    - zlib1g-dev
+    - libevent-dev
+    - gcc
+    - libssl-dev
+    - python-pkgconfig
+    - libffi-dev
+    - dh-autoreconf 
+
+
+  - name: "Install program: ethereal-serpent”
+    become: yes
+    - pip:
+    	name: ethereum-serpent
+
+  - name: "Install program: ethereal-serpent”
+    become: yes
+    - git:
+      repo: 'http://github.com/ethereum/serpent'
+      dest: /home/ubuntu/serpent
+
+  - name: Run a command using a templated variable (always use quote filter to avoid    injection)
+  shell: cat {{ myfile|quote }}
+
