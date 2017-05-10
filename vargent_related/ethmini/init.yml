@@ -1,0 +1,106 @@
+---
+- hosts: default
+  user: ubuntu
+  # gather_facts: false
+  vars:
+    mysql_root_password: "Blockchain!"
+
+  tasks:
+  - name: "FIX: Ubuntu 16.04 LTS doesn't come with certain modules, required by ansible"
+    raw: apt-get install aptitude -y
+    become: yes
+    become_user: root
+    become_method: sudo
+
+  - name: set timezone to Asia/Shanghai
+    become: yes
+    timezone:
+      name: Asia/Shanghai
+
+  - name: "Add ethereum repo"
+    become: yes
+    apt_repository:
+      repo: "ppa:ethereum/ethereum"
+
+  - name: "Install program: ethereum, supervisor, python-mysqldb, mysql-server"
+    become: yes
+    apt: name={{ item }} update_cache=yes state=present
+    with_items:
+    - ethereum
+    - supervisor
+    - python-mysqldb
+    - mysql-server
+
+  - name: "Mkdir /home/ubuntu/workspace/eth"
+    file:
+      path: "/home/ubuntu/workspace/eth"
+      state: directory
+
+  - name: "Copy company address"
+    copy:
+      src: "{{ item }}"
+      dest: "/home/ubuntu/workspace/eth/chain/keystore/"
+    with_fileglob:
+    - "private/*"
+
+  - name: "copy supervisor conf"
+    become: yes
+    copy:
+      src: "sp_eth.conf"
+      dest: "/etc/supervisor/conf.d/sp_eth.conf"
+
+  - name: "Reread && add program eth"
+    become: yes
+    supervisorctl:
+      name: eth
+      state: present
+
+  - name: "Start program eth"
+    become: true
+    supervisorctl:
+      name: eth
+      state: started
+
+  - name: "Start the MySQL service"
+    become: yes
+    service:
+      name: mysql
+      state: started
+      enabled: true
+
+  - name: "Update mysql root password for all root accounts"
+    become: yes
+    mysql_user:
+      name: root
+      host: "{{ item }}"
+      password: "{{ mysql_root_password }}"
+      login_user: root
+      login_password: "{{ mysql_root_password }}"
+      check_implicit_admin: yes
+      priv: "*.*:ALL,GRANT"
+    with_items:
+      - "{{ ansible_hostname }}"
+      - 127.0.0.1
+      - ::1
+      - localhost
+
+  - name: "Create database eth_data"
+    mysql_db: login_user=root login_password={{ mysql_root_password }} db=eth_data state=present encoding=utf8 collation=utf8_general_ci
+
+  - name: "Create database user eth"
+    mysql_user: login_user=root login_password={{ mysql_root_password }} user=eth password=blockinfo host="%" priv=eth_data.*:ALL state=present
+
+  - name: "Replace bind-address"
+    become: yes
+    replace:
+      dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+      regexp: "127.0.0.1"
+      replace: "0.0.0.0"
+
+  - name: "Restart the MySQL service"
+    become: yes
+    service:
+      name: mysql
+      state: restarted
+      enabled: true
+

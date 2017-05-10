@@ -1,0 +1,38 @@
+---
+- hosts: default
+  user: ubuntu
+  # gather_facts: false
+
+  tasks:
+  - name: install aptitude first
+    raw: apt-get install aptitude -y
+    become: yes
+  - name: install programs
+    become: yes
+    apt: name={{ item }} update_cache=yes state=present
+    with_items:
+    - libssl-dev
+    - python-dev
+    - python-setuptools
+    - libevent-dev
+    - libxml2-dev
+    - zlib1g-dev
+    - libevent-dev
+    - gcc
+    - python-pkgconfig
+    - libffi-dev
+    - dh-autoreconf
+  - name: install pyethereum
+    become: yes
+    shell: |
+      git clone https://github.com/ethereum/pyethereum/
+      cd pyethereum
+      sudo python setup.py install
+  - name: install serpent
+    become: yes
+    shell: |
+      git clone https://github.com/ethereum/serpent.git
+      cd serpent
+      git checkout develop
+      sudo make && sudo make install
+      sudo python setup.py install
