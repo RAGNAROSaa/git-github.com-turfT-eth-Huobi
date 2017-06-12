@@ -237,14 +237,15 @@ http://solidity.readthedocs.io/en/develop/solidity-by-example.html
    参考：
 
    1. 今天的简陋版的投票
-   2.  官方样例 http://solidity.readthedocs.io/en/develop/solidity-by-example.html 中的投票系统
+   2. 官方样例 http://solidity.readthedocs.io/en/develop/solidity-by-example.html 中的投票系统
    3. 论文 https://eprint.iacr.org/2017/110.pdf
 
    ​
 
-3. ​
-
    ​
 
    ​
+
+   ​
+
 
