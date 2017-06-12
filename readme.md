@@ -32,3 +32,11 @@ http://solidity.readthedocs.io/en/develop/solidity-by-example.html
 提交地址：
 
 houliang@huobi.com
+
+
+
+
+
+TODO
+
+一些论文。
